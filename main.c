@@ -50,7 +50,7 @@ int main () {
     
     
     //Abertura e verificação do ficheiro binário
-    if((file = fopen("dado.dat", "a+b")) == NULL){
+    if((file = fopen("dados.dat", "a+b")) == NULL){
         printf("Erro na abertura do ficheiro binario!!!\n");
         exit(EXIT_FAILURE);
     }
