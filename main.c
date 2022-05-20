@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 
 //maximo de culturas por propriedade
 #define MAX_CT 20 
@@ -33,15 +34,23 @@ int menu(){
     int opcao;
 
     printf("MENU:\n");
-    //printf("");
-    //printf("");
-    scanf(" %d", &opcao); //Leitura da opção do utilizaddor
+    printf("Listar propriedades por analisar\n");
+    printf("Listar propriedades avaliadas e o valor\n");
+    printf("Listar propriedades avaliadas acima de um determinado valor\n");
+    printf("Listar todas as propriedades avaliadas por um determinado utilizador\n");
+    printf("Pesquisar propriedades por nome do proprietário\n");
+    printf("Gerar num ficheiro de texto um relatório com propriedades avaliadas, ordenadas por valor\n");
+    printf("Gerar o ranking de utilizadores por número de propriedades avaliadas\n");
+
+    printf("Digite>>"); scanf(" %d", &opcao); //Leitura da opção do utilizaddor
 
     return opcao;
 }
 
 
 int main () {
+
+    setlocale(LC_ALL ,"Portuguese");
     
     //Declaração das variaveis
     FILE *file;
@@ -57,7 +66,8 @@ int main () {
 
     //Loop do Menu
     while (1)
-    op = menu();
+    if((op = menu()) == 0) break;
+    
     {
         switch (op)
         {
