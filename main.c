@@ -9,10 +9,11 @@
 //Declaração das estruturas
 typedef struct utilizador{
     char username[20];
+    char nome[20];
     char password[20];
-    int tipo; 
+    char tipo; // a/A->administrador e e/E->(evaluator)avaliador
+
 }UTILIZADOR;
-//1->administrador e 0->avaliador
 
 typedef struct cultura{
     char descricao[150];
@@ -29,6 +30,14 @@ typedef struct propriedade{
 
 }PROPRIEDADE;
 
+//Criação da lista ligada
+struct node {
+    UTILIZADOR data;
+    struct node *next;
+};
+
+struct node *head = NULL;
+
 //Funcões e procedimentos
 int menu(){
     int opcao;
@@ -40,12 +49,45 @@ int menu(){
     printf("Listar todas as propriedades avaliadas por um determinado utilizador\n");
     printf("Pesquisar propriedades por nome do proprietário\n");
     printf("Gerar num ficheiro de texto um relatório com propriedades avaliadas, ordenadas por valor\n");
-    printf("Gerar o ranking de utilizadores por número de propriedades avaliadas\n");
+    printf("Gerar o ranking de utilizadores por número de propriedades avaliadas\n\n");
 
     printf("Digite>>"); scanf(" %d", &opcao); //Leitura da opção do utilizaddor
 
     return opcao;
 }
+
+void loginForm(){
+    struct node *aux;
+    aux = head;
+    //Pedindo nome de utilizador 
+    printf("");
+
+}
+
+
+
+void inserirInicio(UTILIZADOR data) {
+    struct node *novo;
+    novo = (struct node*) malloc(sizeof(struct node));
+    novo->data = data;
+    novo->next = head;
+    head = novo;
+}
+
+void imprimirLista() {
+    struct node *aux;
+    if (head == NULL) {
+        printf("\nLista vazia");
+    } else {
+        aux = head;
+        printf("\nLista: ");
+        while(aux != NULL) {
+            printf("%s ", aux->data.username);
+            aux = aux->next;
+        }
+    }
+}
+
 
 
 int main () {
@@ -55,8 +97,18 @@ int main () {
     //Declaração das variaveis
     FILE *file;
     int op; //Coleta a opção
-    
-    
+
+    //Superutilizador
+    UTILIZADOR superuser = {
+        .nome = "Superuser\0",
+        .username = "Superuser\0",
+        .password = "Passwd123!\0",
+        .tipo = 'a'
+    };
+
+    inserirInicio(superuser);
+    imprimirLista();
+
     
     //Abertura e verificação do ficheiro binário
     if((file = fopen("dados.dat", "a+b")) == NULL){
@@ -65,21 +117,6 @@ int main () {
     }
 
     //Loop do Menu
-    while (1)
-    if((op = menu()) == 0) break;
-    
-    {
-        switch (op)
-        {
-        case 1:
-            break;
-    
-        default:
-            printf("Opcao invalida!!\n");
-            break;
-        }
-    }
-    
 
 
     return 0;
