@@ -56,12 +56,28 @@ int menu(){
     return opcao;
 }
 
-void loginForm(){
+int loginForm(UTILIZADOR input){
     struct node *aux;
     aux = head;
     //Pedindo nome de utilizador 
-    printf("");
-
+    printf("Nome de utilizador: ");
+    scanf("%s", input.username);
+    while (aux != NULL){
+        if ((strcmp(aux->data.username, input.username)) == 0){
+            printf("Password: ");
+            scanf("%s", input.password);
+            if ((strcmp(aux->data.password, input.password))==0){
+                printf("Entrou com sucesso!!\n\n");
+                return 0;
+            } else {
+                printf("Password incorreta.\n");
+            }
+            break;
+        } else {
+            printf("Utilizador não existe\n");
+        }
+        aux = aux->next;
+    }
 }
 
 
@@ -82,7 +98,7 @@ void imprimirLista() {
         aux = head;
         printf("\nLista: ");
         while(aux != NULL) {
-            printf("%s ", aux->data.username);
+            printf("%s \n", aux->data.username);
             aux = aux->next;
         }
     }
@@ -99,7 +115,7 @@ int main () {
     int op; //Coleta a opção
 
     //Superutilizador
-    UTILIZADOR superuser = {
+    UTILIZADOR utilizadores, superuser = {
         .nome = "Superuser\0",
         .username = "Superuser\0",
         .password = "Passwd123!\0",
@@ -108,6 +124,7 @@ int main () {
 
     inserirInicio(superuser);
     imprimirLista();
+    
 
     
     //Abertura e verificação do ficheiro binário
@@ -117,7 +134,7 @@ int main () {
     }
 
     //Loop do Menu
-
+    int log = loginForm(utilizadores);
 
     return 0;
 }
