@@ -195,7 +195,7 @@ void *editarUtilizador(struct nodeUser *head){
 
 void imprimirListaUtilizadores() {
     struct nodeUser *aux;
-    printf("/------------- Lista de Utilizadores -----------/\n\n");
+    printf("/------------- Lista de Utilizadores -----------/\n");
     if (headUsers == NULL) {
         printf("\nLista vazia\n\n");
     } else {
@@ -206,6 +206,7 @@ void imprimirListaUtilizadores() {
             aux = aux->next;
         }
     }
+    printf("\n");
 }
 
 
