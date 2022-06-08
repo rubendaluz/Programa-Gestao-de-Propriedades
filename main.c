@@ -37,6 +37,35 @@ struct nodeUser {
 struct nodeUser *headUsers = NULL;
 
 //Funcões e procedimentos
+
+char loginForm(){
+    struct nodeUser *aux;
+    UTILIZADOR input;
+    aux = headUsers;
+    printf("/---------------- LOGIN FORM -----------------/\n\n");
+    //Pedindo nome de utilizador 
+    printf("\tNome de utilizador: ");
+    scanf("%s", input.username);
+    while (aux != NULL){
+        if((strcmp(aux->data.username, input.username)) == 0){
+            printf("\tPassword:");
+            scanf("%s", input.password);
+            if((strcmp(aux->data.password, input.password)) == 0){
+                printf("\n\tEntrou com sucesso!!!\n\n");
+                return aux->data.tipo;
+            }else{
+                printf("\n\tPassword incorreta!!!\n\n");
+                return 'i';
+            }
+        }else if((strcmp(aux->data.username, input.username)) != 0){
+            aux = aux->next;
+        }else{
+            return 'i';
+        }
+    }
+    printf("\n\tUtilizador inexistente\n\n");
+}   
+
 int menuAdministrador(){
     int opcao;
 
@@ -44,7 +73,8 @@ int menuAdministrador(){
     printf("\t1-Gestao de utilizadores\n");
     printf("\t2-Gestao das propriedades.\n");
     printf("\t3-Informacao sobre as propriedades.\n");
-    printf("\t0-Sair\n\n");
+    printf("\t4-Voltar ao Formulario de login.\n");
+    printf("\t0-Encerrar programa\n\n");
 
     printf("Digite>> "); scanf(" %d", &opcao); //Leitura da opção do utilizaddor
     printf("\n");
@@ -67,38 +97,6 @@ int menuGestaoUtilizadores(){
     return opcao;
 }
 
-char loginForm(UTILIZADOR input){
-    struct nodeUser *aux;
-    aux = headUsers;
-    printf("/---------------- LOGIN FORM -----------------/\n\n");
-    //Pedindo nome de utilizador 
-    printf("\tNome de utilizador: ");
-    scanf("%s", input.username);
-    while (aux != NULL){
-        if ((strcmp(aux->data.username, input.username)) == 0){
-            printf("\tPassword: ");
-            scanf("%s", input.password);
-            if ((strcmp(aux->data.password, input.password))==0){
-                printf("\n\tEntrou com sucesso!!\n\n");
-                return aux->data.tipo;
-                break;  
-            } else {
-                
-                printf("\n\tERRO: Password incorreta.\n");
-                printf("\n");
-                return 'i';
-            }
-            break;
-        } else {
-            printf("\n\tERRO: Utilizador nao existe\n");
-            printf("\n");
-            return 'i';
-        }
-        aux = aux->next;
-    }  
-}
-
-
 
 //Funções reservadas aos Administradores
 
@@ -119,12 +117,12 @@ UTILIZADOR inserirDadosUtilizador(){
 
 void salvarUtilizadorFich(struct nodeUser *utilizador,FILE *fp){
     fseek(fp,0L,SEEK_END);
-    if((fwrite(&utilizador,sizeof(struct nodeUser),1,fp)) != 1){
+    if((fwrite(utilizador,sizeof(struct nodeUser),1,fp)) != 1){
         printf("\tErro ao guardar os dados do utilizador.\n");
     }
 }
 
-void inserirUtilizador(){
+void inserirUtilizador(FILE *fp){
     UTILIZADOR utilizador;
     struct nodeUser *novo, *aux;
     novo = (struct nodeUser*) malloc(sizeof(struct nodeUser));
@@ -135,6 +133,7 @@ void inserirUtilizador(){
         aux = aux->next;
     }
     aux->next = novo;
+    salvarUtilizadorFich(novo,fp);
 }
 
 
@@ -193,54 +192,59 @@ int main () {
     }
 
     //Loop do Menu
-    do{
-        tipo_utilizador = loginForm(utilizadores);
-    } while (tipo_utilizador == 'i');
+    
  
     
     int opAdmin, opAvali, opcao;; //Variaveis que armazenam a opção dos administradores e avaliadores respetivamente
 
     while(1){
-        switch (tipo_utilizador)
-        {
-            //Menu e submenus reservados ao administrador
-        case 'a':
-            imprimirLista();
-            opAdmin = menuAdministrador();
-            switch (opAdmin)
-            {
-            case 1:
-                while (1)
-                {
-                    opcao = menuGestaoUtilizadores();
-                    if(opcao == 0) break;
-                    switch (opcao){
+        do{
+            tipo_utilizador = loginForm();
+        } while (tipo_utilizador == 'i');
+        switch (tipo_utilizador){
+        //Menu e submenus reservados ao administrador
+            case 'a':
+                while (1){ 
+                    imprimirLista();
+                    opAdmin = menuAdministrador();
+                    if(opAdmin == 0) break;
+                    switch (opAdmin){
                     case 1:
-                        inserirUtilizador();
+                        while (1){
+                            opcao = menuGestaoUtilizadores();
+                            if(opcao == 0) break;
+                            switch (opcao){
+                            case 1:
+                                inserirUtilizador(fusers);
+                                break;
+                            case 5:
+                                imprimirLista();
+                                break;
+                            case 0:
+                                fclose(fusers);
+                                break;
+                            default:
+                                break;
+                            }
+                        }
                         break;
-                    case 5:
-                        imprimirLista();
+                    case 0:
+                        printf("\n\tPrograma encerrado!!!\n");
+                        exit(0);
                         break;
                     default:
                         break;
                     }
                 }
+                //Menu e submenus reservados aos avaliadores
+            case 'e':
+
                 break;
-            case 0:
-                break;
+
             default:
                 break;
-            }
-            break;
-            //Menu e submenus reservados aos avaliadores
-        case 'e':
-
-            break;
-
-        default:
-            break;
-        }
+            };
     }
-
+    
     return 0;
 }
