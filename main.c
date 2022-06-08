@@ -12,7 +12,6 @@ typedef struct utilizador{
     char nome[20];
     char password[20];
     char tipo; // a/A->administrador e e/E->(evaluator)avaliador
-
 }UTILIZADOR;
 
 typedef struct cultura{
@@ -27,75 +26,94 @@ typedef struct propriedade{
     char descricao[150];
     float area_total;
     CULTURA culturas[MAX_CT];
-
 }PROPRIEDADE;
 
-//Criação da lista ligada
-struct node {
+//Criação da lista ligada de utilizadores
+struct nodeUser {
     UTILIZADOR data;
-    struct node *next;
+    struct nodeUser *next;
 };
 
-struct node *head = NULL;
+struct nodeUser *headUsers = NULL;
 
 //Funcões e procedimentos
-int menu(){
+int menuAdministrador(){
     int opcao;
 
-    printf("MENU:\n");
-    printf("Listar propriedades por analisar\n");
-    printf("Listar propriedades avaliadas e o valor\n");
-    printf("Listar propriedades avaliadas acima de um determinado valor\n");
-    printf("Listar todas as propriedades avaliadas por um determinado utilizador\n");
-    printf("Pesquisar propriedades por nome do proprietário\n");
-    printf("Gerar num ficheiro de texto um relatório com propriedades avaliadas, ordenadas por valor\n");
-    printf("Gerar o ranking de utilizadores por número de propriedades avaliadas\n\n");
+    printf("/----------- MENU DE ADMINISTRADOR -----------/\n\n");
+    printf("\t1-Gestao de utilizadores\n");
+    printf("\t2-Gestao das propriedades.\n");
+    printf("\t3-Informacao sobre as propriedades.\n");
+    printf("\t0-Sair\n\n");
 
-    printf("Digite>>"); scanf(" %d", &opcao); //Leitura da opção do utilizaddor
-
+    printf("Digite>> "); scanf(" %d", &opcao); //Leitura da opção do utilizaddor
+    printf("\n");
     return opcao;
 }
 
-int loginForm(UTILIZADOR input){
-    struct node *aux;
-    aux = head;
+int menuGestaoUtilizadores(){
+    int opcao;
+
+    printf("/---------- GESTOR DE UTILIZADORES ------------/\n\n");
+    printf("\t1-Inserir novo utilizador.\n");
+    printf("\t2-Editar dados de um utilizador.\n");
+    printf("\t3-Remover utilizador.\n");
+    printf("\t4-Pesquisar utilizador.\n");
+    printf("\t5-Listar utilizadores inseridos.\n");
+    printf("\t0-Sair\n\n");
+
+    printf("Digite>> "); scanf(" %d", &opcao); //Leitura da opção do utilizaddor
+    printf("\n");
+    return opcao;
+}
+
+char loginForm(UTILIZADOR input){
+    struct nodeUser *aux;
+    aux = headUsers;
+    printf("/---------------- LOGIN FORM -----------------/\n\n");
     //Pedindo nome de utilizador 
-    printf("Nome de utilizador: ");
+    printf("\tNome de utilizador: ");
     scanf("%s", input.username);
     while (aux != NULL){
         if ((strcmp(aux->data.username, input.username)) == 0){
-            printf("Password: ");
+            printf("\tPassword: ");
             scanf("%s", input.password);
             if ((strcmp(aux->data.password, input.password))==0){
-                printf("Entrou com sucesso!!\n\n");
-                return 0;
+                printf("\tEntrou com sucesso!!\n\n");
+                return aux->data.tipo;
+                break;  
             } else {
-                printf("Password incorreta.\n");
+                
+                printf("\n\tERRO: Password incorreta.\n");
+                printf("\n");
+                return 'i';
             }
             break;
         } else {
-            printf("Utilizador não existe\n");
+            printf("\n\tERRO: Utilizador nao existe\n");
+            printf("\n");
+            return 'i';
         }
         aux = aux->next;
-    }
+    }  
 }
 
 
 
-void inserirInicio(UTILIZADOR data) {
-    struct node *novo;
-    novo = (struct node*) malloc(sizeof(struct node));
+void inserirSuperUtilizador(UTILIZADOR data) {
+    struct nodeUser *novo;
+    novo = (struct nodeUser*) malloc(sizeof(struct nodeUser));
     novo->data = data;
-    novo->next = head;
-    head = novo;
+    novo->next = headUsers;
+    headUsers = novo;
 }
 
 void imprimirLista() {
-    struct node *aux;
-    if (head == NULL) {
+    struct nodeUser *aux;
+    if (headUsers == NULL) {
         printf("\nLista vazia");
     } else {
-        aux = head;
+        aux = headUsers;
         printf("\nLista: ");
         while(aux != NULL) {
             printf("%s \n", aux->data.username);
@@ -112,9 +130,10 @@ int main () {
     
     //Declaração das variaveis
     FILE *file;
-    int op; //Coleta a opção
+    char tipo_utilizador;
+    
 
-    //Superutilizador
+    //Declaração da estrutura de utilizadores e do superutilizador
     UTILIZADOR utilizadores, superuser = {
         .nome = "Superuser\0",
         .username = "Superuser\0",
@@ -122,7 +141,7 @@ int main () {
         .tipo = 'a'
     };
 
-    inserirInicio(superuser);
+    inserirSuperUtilizador(superuser); //Adicionar o superutilizador a lista de utilizadores
     imprimirLista();
     
 
@@ -134,7 +153,50 @@ int main () {
     }
 
     //Loop do Menu
-    int log = loginForm(utilizadores);
+    do{
+        tipo_utilizador = loginForm(utilizadores);
+    } while (tipo_utilizador == 'i');
+ 
+    
+    int opAdmin, opAvali, opcao;; //Variaveis que armazenam a opção dos administradores e avaliadores respetivamente
+
+    while(1){
+        switch (tipo_utilizador)
+        {
+            //Menu e submenus reservados ao administrador
+        case 'a':
+            opAdmin = menuAdministrador();
+            switch (opAdmin)
+            {
+            case 1:
+                while (1)
+                {
+                    opcao = menuGestaoUtilizadores();
+                    if(opcao == 0) break;
+                    switch (opcao){
+                    case 1:
+                        printf("Inserido \n\n");
+                        break;
+                    default:
+                        break;
+                    }
+                }
+                break;
+            case 0:
+                break;
+            default:
+                break;
+            }
+            break;
+            //Menu e submenus reservados aos avaliadores
+        case 'e':
+
+            break;
+
+        default:
+            break;
+        }
+    }
 
     return 0;
 }
