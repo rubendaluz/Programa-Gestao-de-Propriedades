@@ -42,7 +42,7 @@ char loginForm(){
     struct nodeUser *aux;
     UTILIZADOR input;
     aux = headUsers;
-    printf("/---------------- LOGIN FORM -----------------/\n\n");
+    printf("/--------------- LOGIN FORM ----------------/\n\n");
     //Pedindo nome de utilizador 
     printf("\tNome de utilizador: ");
     scanf("%s", input.username);
@@ -69,7 +69,7 @@ char loginForm(){
 int menuAdministrador(){
     int opcao;
 
-    printf("/----------- MENU DE ADMINISTRADOR -----------/\n\n");
+    printf("/--------- MENU DE ADMINISTRADOR -----------/\n\n");
     printf("\t1-Gestao de utilizadores\n");
     printf("\t2-Gestao das propriedades.\n");
     printf("\t3-Informacao sobre as propriedades.\n");
@@ -84,7 +84,7 @@ int menuAdministrador(){
 int menuGestaoUtilizadores(){
     int opcao;
 
-    printf("/---------- GESTOR DE UTILIZADORES ------------/\n\n");
+    printf("/--------- GESTOR DE UTILIZADORES ----------/\n\n");
     printf("\t1-Inserir novo utilizador.\n");
     printf("\t2-Editar dados de um utilizador.\n");
     printf("\t3-Remover utilizador.\n");
@@ -99,10 +99,8 @@ int menuGestaoUtilizadores(){
 
 
 //Funções reservadas aos Administradores
-
 UTILIZADOR inserirDadosUtilizador(){
     UTILIZADOR utilizador;
-    printf("/------------ INSERIR UTILIZADOR -----------/\n\n");
     printf("\tNome: ");
     scanf("%s", utilizador.nome);
     printf("\tUsername: ");
@@ -126,6 +124,7 @@ void inserirUtilizador(FILE *fp){
     UTILIZADOR utilizador;
     struct nodeUser *novo, *aux;
     novo = (struct nodeUser*) malloc(sizeof(struct nodeUser));
+    printf("/------------ INSERIR UTILIZADOR -----------/\n\n");
     novo->data = inserirDadosUtilizador();
     novo->next = NULL;
     aux = headUsers;
@@ -136,26 +135,74 @@ void inserirUtilizador(FILE *fp){
     salvarUtilizadorFich(novo,fp);
 }
 
-
-
-void inserirSuperUtilizador(UTILIZADOR utilizador) {
+void inserirSuperUtilizador(UTILIZADOR utilizador, FILE *fp) {
     struct nodeUser *novo;
     novo = (struct nodeUser*) malloc(sizeof(struct nodeUser));
     novo->data = utilizador;
     novo->next = headUsers;
     headUsers = novo;
-
+    salvarUtilizadorFich(novo,fp);
 }
 
-void imprimirLista() {
+void *apagarInicio(struct nodeUser *head){
+	struct nodeUser *aux;
+	aux = head;
+	head = aux->next;
+	free(aux);
+}
+
+
+void *apagarUtilizador(struct nodeUser *head){
+	struct nodeUser *aux, *prev;
+	char userInput[20];
+    printf("/------------- REMOVER UTILIZADOR -----------/\n\n");
+	printf("\tInsira o username : ");
+	scanf("%s", userInput);
+	aux = head;
+	if(strcmp(aux->data.username, userInput) == 0){
+		head = apagarInicio(head);
+	} else {
+		while(strcmp(aux->data.username, userInput) != 0){
+			prev = aux;
+			aux = aux->next;
+		}
+		prev->next = aux->next;
+		free(aux);
+	}
+}
+
+void *editarUtilizador(struct nodeUser *head){
+	struct nodeUser *aux;
+    UTILIZADOR input;
+	char userInput[20];
+    printf("/------------- EDITAR UTILIZADOR -----------/\n\n");
+	printf("\tInsira o username : ");
+	scanf("%s", userInput);
+	aux = head;
+    while(aux != NULL){
+        if(strcmp(aux->data.username, userInput) == 0){
+            printf("\nInsira os novos dados do utilizador\n\n");
+            input = inserirDadosUtilizador();
+            aux->data = input;
+        }else{
+            aux = aux->next;
+        }
+    }
+    if(aux == NULL && strcmp(aux->data.username, userInput) != 0){
+        printf("\n\tUtilizador não foi encontrado\n\n");
+    }
+}
+
+void imprimirListaUtilizadores() {
     struct nodeUser *aux;
+    printf("/------------- Lista de Utilizadores -----------/\n\n");
     if (headUsers == NULL) {
-        printf("\nLista vazia");
+        printf("\nLista vazia\n\n");
     } else {
         aux = headUsers;
-        printf("\nLista: ");
+        printf("\n\tUsername\tTipo \n\n");
         while(aux != NULL) {
-            printf("%s \n", aux->data.username);
+            printf("\t%s\t%c\n", aux->data.username, aux->data.tipo);
             aux = aux->next;
         }
     }
@@ -170,6 +217,13 @@ int main () {
     //Declaração das variaveis
     FILE *fusers;
     char tipo_utilizador;
+
+
+    //Abertura e verificação do ficheiro binário
+    if((fusers = fopen("Dados_Utilizadores.dat", "a+b")) == NULL){
+        printf("Erro na abertura do ficheiro binario!!!\n");
+        exit(EXIT_FAILURE);
+    }
     
 
     //Declaração da estrutura de utilizadores e do superutilizador
@@ -180,23 +234,10 @@ int main () {
         .tipo = 'a'
     };
 
-    inserirSuperUtilizador(superuser); //Adicionar o superutilizador a lista de utilizadores
-    
-    
-
-    
-    //Abertura e verificação do ficheiro binário
-    if((fusers = fopen("Dados_Utilizadores.dat", "a+b")) == NULL){
-        printf("Erro na abertura do ficheiro binario!!!\n");
-        exit(EXIT_FAILURE);
-    }
+    inserirSuperUtilizador(superuser, fusers); //Adicionar o superutilizador a lista de utilizadores
 
     //Loop do Menu
-    
- 
-    
     int opAdmin, opAvali, opcao;; //Variaveis que armazenam a opção dos administradores e avaliadores respetivamente
-
     while(1){
         do{
             tipo_utilizador = loginForm();
@@ -205,9 +246,7 @@ int main () {
         //Menu e submenus reservados ao administrador
             case 'a':
                 while (1){ 
-                    imprimirLista();
                     opAdmin = menuAdministrador();
-                    if(opAdmin == 0) break;
                     switch (opAdmin){
                     case 1:
                         while (1){
@@ -217,8 +256,14 @@ int main () {
                             case 1:
                                 inserirUtilizador(fusers);
                                 break;
+                            case 2:
+                                editarUtilizador(headUsers);
+                                break;
+                            case 3:
+                                apagarUtilizador(headUsers);
+                                break;
                             case 5:
-                                imprimirLista();
+                                imprimirListaUtilizadores();
                                 break;
                             case 0:
                                 fclose(fusers);
@@ -228,8 +273,11 @@ int main () {
                             }
                         }
                         break;
+                    case 4:
+                        break;
                     case 0:
-                        printf("\n\tPrograma encerrado!!!\n");
+                        printf("\tPrograma encerrado!!!\n");
+                        fclose(fusers);
                         exit(0);
                         break;
                     default:
