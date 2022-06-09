@@ -152,7 +152,7 @@ void *apagarInicio(struct nodeUser *head){
 }
 
 
-void *apagarUtilizador(struct nodeUser *head){
+void apagarUtilizador(struct nodeUser *head){
 	struct nodeUser *aux, *prev;
 	char userInput[20];
     printf("/------------- REMOVER UTILIZADOR -----------/\n\n");
@@ -171,7 +171,34 @@ void *apagarUtilizador(struct nodeUser *head){
 	}
 }
 
-void *editarUtilizador(struct nodeUser *head){
+void pesquisarUtilizador(struct nodeUser *head){
+	struct nodeUser *aux;
+	char userInput[20];
+    printf("/------------- PESQUISAR UTILIZADOR -----------/\n\n");
+	printf("\tInsira o nome : ");
+	scanf("%s", userInput);
+	aux = head;
+    while(aux != NULL){
+        if(strcmp(aux->data.nome, userInput) == 0){
+            printf("\n\tDados do utilizador\n\n");
+            printf("\tUsername: %s\n", aux->data.username);
+            printf("\tPassword: %s\n", aux->data.password);
+            if (aux->data.tipo == 'a')
+            {
+                printf("\tTipo: Administrador\n\n");
+            }else{
+                printf("\tTipo: Avaliador\n\n");
+            }   
+        }else{
+            aux = aux->next;
+        }
+    }
+    if(aux == NULL && strcmp(aux->data.nome, userInput) != 0){
+        printf("\n\tUtilizador não foi encontrado\n\n");
+    }
+}
+
+void editarUtilizador(struct nodeUser *head){
 	struct nodeUser *aux;
     UTILIZADOR input;
 	char userInput[20];
@@ -232,7 +259,7 @@ int main () {
         .nome = "Superuser\0",
         .username = "Superuser\0",
         .password = "Passwd123!\0",
-        .tipo = 'a'
+        .tipo = 'a',
     };
 
     inserirSuperUtilizador(superuser, fusers); //Adicionar o superutilizador a lista de utilizadores
@@ -262,6 +289,9 @@ int main () {
                                 break;
                             case 3:
                                 apagarUtilizador(headUsers);
+                                break;
+                            case 4:
+                                pesquisarUtilizador(headUsers);
                                 break;
                             case 5:
                                 imprimirListaUtilizadores();
