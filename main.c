@@ -84,7 +84,7 @@ int menuAdministrador(){
 int menuGestaoUtilizadores(){
     int opcao;
 
-    printf("/--------- GESTOR DE UTILIZADORES ----------/\n\n");
+    printf("/------- GERENCIADOR DE UTILIZADORES -------/\n\n");
     printf("\t1-Inserir novo utilizador.\n");
     printf("\t2-Editar dados de um utilizador.\n");
     printf("\t3-Remover utilizador.\n");
@@ -97,8 +97,44 @@ int menuGestaoUtilizadores(){
     return opcao;
 }
 
+int menuGestaoPropriedades(){
+    int opcao;
+
+     printf("/------- GERENCIADOR DE PROPRIEDADES -------/\n\n");
+    printf("\t1-Inserir nova propriedade.\n");
+    printf("\t2-Editar dados de uma propriedade.\n");
+    printf("\t3-Remover propriedade.\n");
+    printf("\t4-Listar propriedades inseridas.\n");
+    printf("\t0-Sair\n\n");
+
+    printf("Digite>> "); scanf(" %d", &opcao); //Leitura da opção do utilizaddor
+    printf("\n");
+    return opcao;
+}
+
 
 //Funções reservadas aos Administradores
+int numUtilizadoresRegistrados(FILE *fp){
+    int num;
+    fseek(fp,0L,SEEK_END);
+    num = ftell(fp) / sizeof(UTILIZADOR);
+    printf("%d", num);
+    return num;
+}
+
+void lerUtilizadoresFicheiro(struct nodeUser *head, FILE *fp){
+    int qtdusers;
+    qtdusers = numUtilizadoresRegistrados(fp);
+    head = headUsers;
+}
+
+void salvarUtilizadorFich(struct nodeUser *utilizador,FILE *fp){
+    fseek(fp,0L,SEEK_END);
+    if((fwrite(utilizador,sizeof(struct nodeUser),1,fp)) != 1){
+        printf("\tErro ao guardar os dados do utilizador.\n");
+    }
+}
+
 UTILIZADOR inserirDadosUtilizador(){
     UTILIZADOR utilizador;
     printf("\tNome: ");
@@ -113,12 +149,6 @@ UTILIZADOR inserirDadosUtilizador(){
     return utilizador;
 }
 
-void salvarUtilizadorFich(struct nodeUser *utilizador,FILE *fp){
-    fseek(fp,0L,SEEK_END);
-    if((fwrite(utilizador,sizeof(struct nodeUser),1,fp)) != 1){
-        printf("\tErro ao guardar os dados do utilizador.\n");
-    }
-}
 
 void inserirUtilizador(FILE *fp){
     UTILIZADOR utilizador;
@@ -135,13 +165,12 @@ void inserirUtilizador(FILE *fp){
     salvarUtilizadorFich(novo,fp);
 }
 
-void inserirSuperUtilizador(UTILIZADOR utilizador, FILE *fp) {
+void inserirSuperUtilizador(UTILIZADOR utilizador) {
     struct nodeUser *novo;
     novo = (struct nodeUser*) malloc(sizeof(struct nodeUser));
     novo->data = utilizador;
     novo->next = headUsers;
     headUsers = novo;
-    salvarUtilizadorFich(novo,fp);
 }
 
 void *apagarInicio(struct nodeUser *head){
@@ -171,6 +200,30 @@ void apagarUtilizador(struct nodeUser *head){
 	}
 }
 
+void editarUtilizador(struct nodeUser *head){
+	struct nodeUser *aux;
+    UTILIZADOR input;
+	char userInput[20];
+    printf("/------------- EDITAR UTILIZADOR -----------/\n\n");
+	printf("\tInsira o username : ");
+	scanf("%s", userInput);
+	aux = head;
+    while(aux != NULL){
+        if(strcmp(aux->data.username, userInput) == 0){
+            printf("\nInsira os novos dados do utilizador\n\n");
+            input = inserirDadosUtilizador();
+            aux->data = input;
+            printf("\n\tDados atualizados\n\n");
+            break;
+        }else{
+            aux = aux->next;
+        }
+    }
+    if(aux == NULL && strcmp(aux->data.username, userInput) != 0){
+        printf("\n\tUtilizador não foi encontrado\n\n");
+    }
+}
+
 void pesquisarUtilizador(struct nodeUser *head){
 	struct nodeUser *aux;
 	char userInput[20];
@@ -194,28 +247,6 @@ void pesquisarUtilizador(struct nodeUser *head){
         }
     }
     if(aux == NULL && strcmp(aux->data.nome, userInput) != 0){
-        printf("\n\tUtilizador não foi encontrado\n\n");
-    }
-}
-
-void editarUtilizador(struct nodeUser *head){
-	struct nodeUser *aux;
-    UTILIZADOR input;
-	char userInput[20];
-    printf("/------------- EDITAR UTILIZADOR -----------/\n\n");
-	printf("\tInsira o username : ");
-	scanf("%s", userInput);
-	aux = head;
-    while(aux != NULL){
-        if(strcmp(aux->data.username, userInput) == 0){
-            printf("\nInsira os novos dados do utilizador\n\n");
-            input = inserirDadosUtilizador();
-            aux->data = input;
-        }else{
-            aux = aux->next;
-        }
-    }
-    if(aux == NULL && strcmp(aux->data.username, userInput) != 0){
         printf("\n\tUtilizador não foi encontrado\n\n");
     }
 }
@@ -244,7 +275,7 @@ int main () {
     
     //Declaração das variaveis
     FILE *fusers;
-    char tipo_utilizador;
+    
 
 
     //Abertura e verificação do ficheiro binário
@@ -253,6 +284,7 @@ int main () {
         exit(EXIT_FAILURE);
     }
     
+    numUtilizadoresRegistrados(fusers);
 
     //Declaração da estrutura de utilizadores e do superutilizador
     UTILIZADOR utilizadores, superuser = {
@@ -262,10 +294,12 @@ int main () {
         .tipo = 'a',
     };
 
-    inserirSuperUtilizador(superuser, fusers); //Adicionar o superutilizador a lista de utilizadores
+    inserirSuperUtilizador(superuser); //Adicionar o superutilizador a lista de utilizadores
 
     //Loop do Menu
-    int opAdmin, opAvali, opcao;; //Variaveis que armazenam a opção dos administradores e avaliadores respetivamente
+    int opAdmin, opAvali; //Variaveis que armazenam a opção dos administradores e avaliadores respetivamente
+    char tipo_utilizador;
+    
     while(1){
         do{
             tipo_utilizador = loginForm();
@@ -275,10 +309,11 @@ int main () {
             case 'a':
                 while (1){ 
                     opAdmin = menuAdministrador();
+                    if(opAdmin == 4) break;
                     switch (opAdmin){
                     case 1:
                         while (1){
-                            opcao = menuGestaoUtilizadores();
+                            int opcao = menuGestaoUtilizadores();
                             if(opcao == 0) break;
                             switch (opcao){
                             case 1:
@@ -304,7 +339,16 @@ int main () {
                             }
                         }
                         break;
-                    case 4:
+                    case 2:
+                        while(1){
+                            int opcao;
+                            opcao = menuGestaoPropriedades();
+                            if(opcao == 0) break;
+                            switch (opcao){
+                                case 0:
+                                    break;
+                            }
+                        }
                         break;
                     case 0:
                         printf("\tPrograma encerrado!!!\n");
