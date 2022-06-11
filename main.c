@@ -52,13 +52,23 @@ struct nodeProp {
 };
 
 struct nodeProp *headProps = NULL;
+//Fila de propriedades a avaliar
+
+struct queue{
+	struct node *front;
+	struct node *rear;
+};
+
+struct queue *fila;
 
 //Funcões e procedimentos
 
 char loginForm(){
     struct nodeUser *aux; 
     UTILIZADOR input;
+    int sair;
     aux = headUsers;
+    system("cls");
     printf("/--------------- LOGIN FORM ----------------/\n\n");
     //Pedindo nome de utilizador 
     printf("\tNome de utilizador: ");
@@ -72,6 +82,11 @@ char loginForm(){
                 return aux->data.tipo;
             }else{
                 printf("\n\tPassword incorreta!!!\n\n");
+                printf("\tDeseja sair (0-Nao | 1-Sim): ");
+                scanf("%d", &sair);
+                if(sair == 1){
+                    exit(0);
+                }
                 return 'i';
             }
         }else if((strcmp(aux->data.username, input.username)) != 0){
@@ -81,11 +96,16 @@ char loginForm(){
         }
     }
     printf("\n\tUtilizador inexistente\n\n");
+    printf("\tDeseja sair (0-Nao | 1-Sim): ");
+    scanf("%d", &sair);
+    if(sair == 1){
+        exit(0);
+    }
 }   
 
 int menuAdministrador(){
     int opcao;
-
+    system("cls");
     printf("/--------- MENU DE ADMINISTRADOR -----------/\n\n");
     printf("\t1-Gestao de utilizadores\n");
     printf("\t2-Gestao das propriedades.\n");
@@ -100,7 +120,7 @@ int menuAdministrador(){
 
 int menuGestaoUtilizadores(){
     int opcao;
-
+    system("cls");
     printf("/------- GERENCIADOR DE UTILIZADORES -------/\n\n");
     printf("\t1-Inserir novo utilizador.\n");
     printf("\t2-Listar utilizadores inseridos.\n");
@@ -113,7 +133,7 @@ int menuGestaoUtilizadores(){
 
 int menuGestaoPropriedades(){
     int opcao;
-
+    system("cls");
     printf("/------- GERENCIADOR DE PROPRIEDADES -------/\n\n");
     printf("\t1-Inserir nova propriedade.\n");
     printf("\t2-Editar dados de uma propriedade.\n");
@@ -128,7 +148,7 @@ int menuGestaoPropriedades(){
 
 int menuInfoPropriedades(){
     int opcao;
-
+    system("cls");
     printf("/------------ INFORMACAO/RELATORIOS DAS PROPRIEDADES -----------/\n\n");
     printf("\t1-Propriedades por analisar.\n");
     printf("\t2-Propriedades avaliadas.\n");
@@ -175,7 +195,8 @@ void salvarUtilizadorFich(UTILIZADOR utilizador,FILE *fp){
 UTILIZADOR inserirDadosUtilizador(){
     UTILIZADOR utilizador;
     printf("\tNome: ");
-    scanf("%s", utilizador.nome);
+    fflush(stdin);
+    gets(utilizador.nome);
     printf("\tUsername: ");
     scanf("%s", utilizador.username);
     printf("\tPassword: ");
@@ -190,6 +211,7 @@ void inserirUtilizador(FILE *fp){
     UTILIZADOR utilizador;
     struct nodeUser *novo, *aux;
     novo = (struct nodeUser*) malloc(sizeof(struct nodeUser));
+    system("cls");
     printf("/------------ INSERIR UTILIZADOR -----------/\n\n");
     novo->data = inserirDadosUtilizador();
     printf("\n");
@@ -234,9 +256,11 @@ PROPRIEDADE inserirDadosPropriedade(){
     printf("\tIdentificador: ");
     scanf("%d", &propriedade.identificador);
     printf("\tProprietario: ");
-    scanf("%s", propriedade.nome_proprietario);
+    fflush(stdin);
+    gets(propriedade.nome_proprietario);
     printf("\tDescricao: ");
-    scanf("%s", propriedade.descricao);
+    fflush(stdin);
+    gets(propriedade.descricao);
     printf("\tArea: ");
     scanf("%f", &propriedade.area);
     printf("\nPretende adicionar culturas (0-Nao | 1-Sim):");
@@ -249,7 +273,8 @@ PROPRIEDADE inserirDadosPropriedade(){
            printf("\tNome da cultura: ");
            scanf("%s", propriedade.culturas[i].nome);
            printf("\tDescricao: ");
-           scanf("%s", propriedade.culturas[i].descricao);
+           fflush(stdin);
+           gets(propriedade.culturas[i].descricao);
            printf("\tArea de cultivo: ");
            scanf("%f", &propriedade.culturas[i].area_cultivo);
            propriedade.numCulturas = i+1;
@@ -283,6 +308,7 @@ void inserirPropriedade(FILE *fp){
     PROPRIEDADE propriedade;
     struct nodeProp *novo, *aux;
     novo = (struct nodeProp*) malloc(sizeof(struct nodeProp));
+    system("cls");
     printf("/------------ INSERIR PROPRIEDADE -----------/\n\n");
     novo->data = inserirDadosPropriedade();
     novo->next = NULL;
@@ -301,6 +327,7 @@ void inserirPropriedade(FILE *fp){
 void editarPropriedade(){
 	struct nodeProp *aux;
 	int userInput;
+    system("cls");
     printf("/------------- EDITAR UTILIZADOR -----------/\n\n");
 	printf("\tInsira o identificador : ");
 	scanf("%d", userInput);
@@ -323,9 +350,11 @@ void editarPropriedade(){
 void pesquisarPropriedade(){
 	struct nodeProp *aux;
 	char userInput[20];
+    system("cls");
     printf("/----------- PESQUISAR PROPRIEDADE ---------/\n\n");
 	printf("\tInsira o nome do proprietario : ");
-	scanf("%s", userInput);
+    fflush(stdin);
+	gets(userInput);
 	aux = headProps;
     while(aux != NULL){
         if(strcmp(aux->data.nome_proprietario, userInput) == 0){
@@ -354,7 +383,7 @@ void pesquisarPropriedade(){
     }
 }
 
-void imprimirListaPropriedades(struct nodeProp *head){ //Usar esqueleto para outras funções
+void imprimirListaPropriedades(){ //Usar esqueleto para outras funções
 	struct nodeProp *aux;
 	aux = headProps;
 	printf("lista: ");
@@ -362,6 +391,28 @@ void imprimirListaPropriedades(struct nodeProp *head){ //Usar esqueleto para out
 		printf("%s ", aux->data.nome_proprietario);
 		aux = aux->next;
 	}
+}
+
+// Funções reservadas para os Avaliadores
+
+int menuAvaliadores(){
+    int opcao;
+    system("cls");
+    printf("/------------------- MENU DE AVALIADOR -------------------/\n\n");
+    printf("\t1-Adicionar propriedade a lista para avaliar.\n");
+    printf("\t2-Avaliar propriedades da lista.\n");
+    printf("\t2-Voltar ao Formulario de login.\n");
+    printf("\t0-Encerrar o programa.\n\n");
+
+    printf("Digite>> "); scanf(" %d", &opcao); //Leitura da opção do utilizaddor
+    printf("\n");
+    return opcao;
+}
+
+void FilaPropriedadesAvaliar(){
+    fila = (struct queue*) malloc(sizeof(struct queue)); 
+    fila->front = NULL; 
+    fila->rear = NULL;
 }
 
 
@@ -417,20 +468,22 @@ int main () {
                     case 1:
                         while (1){
                             int opcao = menuGestaoUtilizadores();
-                            if(opcao == 0) break;
                             switch (opcao){
                             case 1:
                                 inserirUtilizador(fusers);
                                 break;
                             case 2:
                                 imprimirListaUtilizadores();
+                                system("pause");
                                 break;
                             case 0:
                                 fclose(fusers);
                                 break;
                             default:
+                                printf("\tOpcao invalida!!! Tente novamente\n");
                                 break;
                             }
+                            if(opcao == 0) break;
                         }
                         break;
                     case 2:
@@ -449,6 +502,9 @@ int main () {
                                     break;
                                 case 0:
                                     fclose(fprops);
+                                    break;
+                                default:
+                                    printf("\tOpcao invalida!!! Tente novamente\n");
                                     break;
                             }
                             if(opcao == 0) break;
@@ -472,17 +528,30 @@ int main () {
                         exit(0);
                         break;
                     default:
+                        printf("\tOpcao invalida!!! Tente novamente\n");
                         break;
                     }
                 }
+                break;
                 //Menu e submenus reservados aos avaliadores
             case 'e':
-
+                while (1){
+                    int opcao;
+                    opcao = menuAvaliadores();
+                    if (opcao == 3)break;
+                    switch (opcao){
+                    case 1:
+                        break;
+                    case 0:
+                        exit(EXIT_SUCCESS);
+                        break;
+                    default:
+                        printf("\tOpcao invalida!!! Tente novamente\n");
+                        break;
+                    }
+                }
                 break;
-
-            default:
-                break;
-            };
+        }
     }
     return 0;
 }
