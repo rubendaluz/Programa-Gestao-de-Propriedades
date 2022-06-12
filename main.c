@@ -6,6 +6,7 @@
 //maximo de culturas por propriedade
 #define MAX_CT 20 
 #define ID 10000
+int qtdprops = 0;
 //Declaração das estruturas
 typedef struct utilizador{
     char nome[20];
@@ -56,8 +57,8 @@ struct nodeProp *headProps = NULL;
 //Fila de propriedades a avaliar
 
 struct queue{
-	struct node *front;
-	struct node *rear;
+	struct nodeProp *front;
+	struct nodeProp *rear;
 };
 
 struct queue *fila;
@@ -76,7 +77,7 @@ void footerListaPropsAvaliar(FILE *out){
 
 //Funcões e procedimentos
 
-char loginForm(){
+UTILIZADOR loginForm(){
     struct nodeUser *aux; 
     UTILIZADOR input;
     int sair;
@@ -93,7 +94,7 @@ char loginForm(){
             if((strcmp(aux->data.password, input.password)) == 0){
                 printf("\n\tEntrou com sucesso!!!\n\n");
                 system("pause");
-                return aux->data.tipo;
+                return aux->data;
             }else{
                 printf("\n\tPassword incorreta!!!\n\n");
                 printf("\tDeseja sair (0-Nao | 1-Sim): ");
@@ -101,12 +102,14 @@ char loginForm(){
                 if(sair == 1){
                     exit(0);
                 }
-                return 'i';
+                aux->data.tipo = 'i';
+                return aux->data;
             }
         }else if((strcmp(aux->data.username, input.username)) != 0){
             aux = aux->next;
         }else{
-            return 'i';
+            aux->data.tipo = 'i';
+            return aux->data;
         }
     }
     printf("\n\tUtilizador inexistente\n\n");
@@ -305,16 +308,14 @@ void lerPropriedadesFicheiro(FILE *fp, PROPRIEDADE propriedades[], int qtdprops)
     rewind(fp);
     if(qtdprops != 0){
         fseek(fp,0L,SEEK_SET);
-        for(int i = 0; i < qtdprops; ++i){
-            fread(propriedades,sizeof(PROPRIEDADE),qtdprops,fp);
-        }
+        fread(propriedades,sizeof(PROPRIEDADE),qtdprops,fp);
     }
 }
 
-PROPRIEDADE inserirDadosPropriedade(FILE *fp){
+PROPRIEDADE inserirDadosPropriedade(FILE *fp, int qtdprops){
     int resp;
     PROPRIEDADE propriedade;
-    propriedade.numero = numPropriedadesRegistadas(fp) + 1;
+    propriedade.numero = qtdprops + 1;
     printf("\tProprietario: ");
     fflush(stdin);
     gets(propriedade.nome_proprietario);
@@ -345,7 +346,7 @@ PROPRIEDADE inserirDadosPropriedade(FILE *fp){
     } else if(resp == 0){
         propriedade.numCulturas = 0;
     }
-    strcpy(propriedade.estado, "nao avaliado");
+    strcpy(propriedade.estado,"para avaliar");
     printf("\n");
     return propriedade;
 }
@@ -363,13 +364,13 @@ void salvarPropriedadeFich(FILE *fp){
     
 }
 
-void inserirPropriedade(FILE *fp){
+void inserirPropriedade(FILE *fp, int qtdprops){
     PROPRIEDADE propriedade;
     struct nodeProp *novo, *aux;
     novo = (struct nodeProp*) malloc(sizeof(struct nodeProp));
     system("cls");
     printf("/------------ INSERIR PROPRIEDADE -----------/\n\n");
-    novo->data = inserirDadosPropriedade(fp);
+    novo->data = inserirDadosPropriedade(fp,qtdprops);
     novo->data.identificador = ID + novo->data.numero;
     novo->next = NULL;
     if(headProps == NULL){
@@ -384,8 +385,9 @@ void inserirPropriedade(FILE *fp){
 }
 
 void editarPropriedade(FILE *fp){
-	struct nodeProp *aux;
-	int userInput;
+	struct nodeProp *aux, *novo;
+    aux = (struct nodeProp*) malloc(sizeof(struct nodeProp));
+	int userInput, id;
     system("cls");
     printf("/------------- EDITAR PROPRIEDADE -----------/\n\n");
 	printf("\tInsira o identificador: ");
@@ -393,17 +395,19 @@ void editarPropriedade(FILE *fp){
 	aux = headProps;
     while(aux != NULL){
         if(userInput == aux->data.identificador){
+            id = aux->data.identificador;
             printf("\nInsira os novos dados da propriedade\n\n");
-            aux->data = inserirDadosPropriedade(fp);
+            aux->data = inserirDadosPropriedade(fp,qtdprops);
+            aux->data.identificador = id;
             printf("\n\tDados atualizados\n\n");
             break;
         }else{
             aux = aux->next;
         }
     }
-    if(aux == NULL && userInput != aux->data.identificador){
+    /*if(aux == NULL && userInput != aux->data.identificador){
         printf("\n\tPropriedade não foi encontrada\n\n");
-    }
+    }*/
 }
 
 void pesquisarPropriedade(){
@@ -432,12 +436,12 @@ void pesquisarPropriedade(){
             }else{
                 printf("A propriedade carece de culturas cultivadas.");
             }
-            
             printf("\n\tEstado de avaliacao:  \t%s\n", aux->data.estado); 
         } else if(aux == NULL && strcmp(aux->data.nome_proprietario, userInput) != 0){
             printf("\n\tPropriedade não foi encontrada\n\n");
+        }else{
+            aux = aux->next;
         }
-        aux = aux->next;
     }
     printf("\n");
     system("pause");
@@ -463,15 +467,14 @@ void imprimirListaPropriedades(){ //Usar esqueleto para outras funções
 void imprimirListaPropriedadesAvaliar(){ //Usar esqueleto para outras funções
 	struct nodeProp *aux;
 	aux = headProps;
-	printf("/-----------LISTA DE PROPRIEDADES A AVALIAR --------------/\n\n");
+	printf("/-----------LISTA DE PROPRIEDADES POR AVALIAR --------------/\n\n");
     headerListaPropsAvaliar(stdout);
 	while(aux != NULL){
-		if ((strcmp(aux->data.estado, "nao avaliado")) == 0){
-            printf("\t|%-3d|%-20s|%-14d|\n", aux->data.numero, aux->data.nome_proprietario, aux->data.identificador);
+		if ((strcmp(aux->data.estado,"para avaliar")) == 0){
+            printf("\t|%-3d|%-20s|%-14d|\n", aux->data.numero,aux->data.nome_proprietario,aux->data.identificador);
         } else {
-            printf("\tNao existem quaisquer propriedades por avaliar!!!\n\n");
+            aux = aux->next;
         }
-		aux = aux->next;
 	}
     footerListaPropsAvaliar(stdout);
     system("pause");
@@ -483,9 +486,11 @@ int menuAvaliadores(){
     int opcao;
     system("cls");
     printf("/------------------- MENU DE AVALIADOR -------------------/\n\n");
-    printf("\t1-Adicionar propriedade a lista para avaliar.\n");
-    printf("\t2-Avaliar propriedades da lista.\n");
-    printf("\t3-Voltar ao Formulario de login.\n");
+    printf("\t1-Propriedades por avaliar.\n");
+    printf("\t2-Adicionar propriedade a fila para avaliacao.\n");
+    printf("\t3-Lista de propriedades na fila para avaliacao.\n");
+    printf("\t4-Avaliar propriedades da fila.\n");
+    printf("\t5-Voltar ao Formulario de login.\n");
     printf("\t0-Encerrar o programa.\n\n");
 
     printf("Digite>> "); scanf(" %d", &opcao); //Leitura da opção do utilizaddor
@@ -500,11 +505,83 @@ void FilaPropriedadesAvaliar(){
 }
 
 
+void adicionarPropsFila(){
+    struct nodeProp *novo, *aux;
+    int id;
+    aux = headProps;
+    novo = (struct nodeProp*) malloc(sizeof(struct nodeProp));
+    printf("/-------------- ADICIONAR PROPRIEDADE A FILA -------------/\n\n");
+    printf("\tInsira o identificador: ");
+    fflush(stdin);
+    scanf("%d", &id);
+    while(aux != NULL){
+        if(id == aux->data.identificador){
+            novo->data = aux->data;
+            strcpy(novo->data.estado,"em avaliacao");
+            if(fila->front == NULL){
+                fila->front = novo;
+                fila->rear = novo;
+                fila->front->next = NULL;
+            } else{
+                fila->rear->next = novo;
+                fila->rear = novo;
+                fila->rear->next =  NULL;
+            }
+            printf("\n\tPropriedade adicionada.\n");
+            break;
+        }else{
+            aux = aux->next;
+        }
+    }
+
+    if(aux == NULL && aux->data.identificador != id){
+            printf("\tPropriedade nao foi encontrada\n\n");
+    }
+    system("pause");
+}
+
+void listaPropriedadesFilaAvaliacao(){
+    struct nodeProp *aux;
+    aux = fila->front;
+    printf("/-------------- FILA PROPRIEDADES PARA AVALIAR -------------/\n\n");
+    if(fila->front == NULL){
+        printf("A lista esta vazia\n");
+    }else{
+        headerListaPropsAvaliar(stdout);
+        while(aux != NULL){
+            printf("\t|%-3d|%-20s|%-14d|\n", aux->data.numero, aux->data.nome_proprietario, aux->data.identificador);
+            aux = aux->next;            
+        }
+        footerListaPropsAvaliar(stdout);
+    }
+}
+
+void avaliarPropriedade(UTILIZADOR avaliador){
+    struct nodeProp *aux, *update;
+    int id;
+    aux = fila->front;
+    update = headProps;\
+    printf("\tInsira o identificador: ");
+    fflush(stdin);
+    scanf("%d", &id);
+    while(aux != NULL){
+        if(id == aux->data.identificador){
+            update = aux;
+            printf("\n\tQual o valor que atribui a propriedade: ");
+            scanf("%f", &update->data.propAvaliada.valAvaliacao);
+            strcpy(update->data.estado,"avaliado");
+            strcpy(update->data.propAvaliada.avaliador, avaliador.nome);
+        }else{
+            aux = aux->next;
+        }
+    system("pause");
+    }
+}
 
 int main () {
 
     setlocale(LC_ALL ,"Portuguese");
-    //system("COLOR 74");
+    system("COLOR F0");
     
     //Declaração das variaveis
     FILE *fusers;
@@ -518,7 +595,7 @@ int main () {
         exit(EXIT_FAILURE);
     }
 
-    if((fprops = fopen("Dados_Propriedades.dat", "w+b")) == NULL){
+    if((fprops = fopen("Dados_Propriedades.dat", "rb")) == NULL){
         printf("Erro na abertura do ficheiro que guarda os dados das Propriedades!!!\n");
         exit(EXIT_FAILURE);
     }
@@ -526,7 +603,7 @@ int main () {
     int qtdusers = numUtilizadoresRegistados(fusers);
     
     //Declaração da estrutura do superutilizador
-    UTILIZADOR utilizadores[qtdusers], superuser = {
+    UTILIZADOR utilizadores[qtdusers],utilizadorSessao, superuser = {
         .nome = "Superuser\0",
         .username = "Superuser\0",
         .password = "Passwd123!\0",
@@ -549,10 +626,10 @@ int main () {
 
     }
 
-    int qtdprops = numPropriedadesRegistadas(fprops);
+    qtdprops = numPropriedadesRegistadas(fprops);
     PROPRIEDADE propriedades[qtdprops];
 
-    lerPropriedadesFicheiro(fusers,propriedades, qtdprops);
+    lerPropriedadesFicheiro(fprops,propriedades, qtdprops);
     for (int i = 0; i < qtdprops;++i){
         if(qtdprops!=0){
             struct nodeProp *novo, *aux;
@@ -571,14 +648,20 @@ int main () {
         } 
     }
 
+    //Criar fila de propriedades por avaliar
+    FilaPropriedadesAvaliar();
+
+
     //Loop do Menu
     int opAdmin, opAvali; //Variaveis que armazenam a opção dos administradores e avaliadores respetivamente
     char tipo_utilizador;
     
     while(1){
         do{
-            tipo_utilizador = loginForm();
+            utilizadorSessao = loginForm();
+            tipo_utilizador = utilizadorSessao.tipo;
         } while (tipo_utilizador == 'i');
+        
         switch (tipo_utilizador){
         //Menu e submenus reservados ao administrador
             case 'a':
@@ -613,7 +696,9 @@ int main () {
                             opcao = menuGestaoPropriedades();
                             switch (opcao){
                                 case 1:
-                                    inserirPropriedade(fprops);
+                                    inserirPropriedade(fprops,qtdprops);
+                                    ++qtdprops;
+                                    salvarPropriedadeFich(fprops);
                                     break;
                                 case 2:
                                     editarPropriedade(fprops);
@@ -625,11 +710,10 @@ int main () {
                                     imprimirListaPropriedades();
                                     break;
                                 case 0:
-                                    fclose(fprops);
+                                    
                                     break;
                                 default:
                                     printf("\tOpcao invalida!!! Tente novamente\n");
-                                    salvarPropriedadeFich(fprops);
                                     break;
                             }
                             if(opcao == 0) break;
@@ -666,9 +750,20 @@ int main () {
                 while (1){
                     int opcao;
                     opcao = menuAvaliadores();
-                    if (opcao == 3)break;
+                    if (opcao == 5)break;
                     switch (opcao){
                     case 1:
+                        imprimirListaPropriedadesAvaliar();
+                        break;
+                    case 2:
+                        adicionarPropsFila();
+                        break;
+                    case 3:
+                        listaPropriedadesFilaAvaliacao();
+                        system("pause");
+                        break;
+                    case 4:
+                        avaliarPropriedade(utilizadorSessao);
                         break;
                     case 0:
                         exit(EXIT_SUCCESS);
@@ -681,5 +776,6 @@ int main () {
                 break;
         }
     }
+    fclose(fprops);
     return 0;
 }
